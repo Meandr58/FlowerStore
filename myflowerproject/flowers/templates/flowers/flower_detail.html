@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ flower.name }}</title>
+</head>
+<body>
+    <h1>{{ flower.name }}</h1>
+<p>{{ flower.description }}</p>
+<p>Цена: {{ flower.price }}₽</p>
+<img src="{{ flower.image.url }}" alt="{{ flower.name }}">
+<form method="POST" action="{% url 'add_to_cart' flower.id %}">
+    {% csrf_token %}
+    <input type="number" name="quantity" value="1" min="1">
+    <button type="submit">Добавить в корзину</button>
+</form>
+
+    <a href="{% url 'flower_list' %}">Back to catalog</a>
+</body>
+</html>

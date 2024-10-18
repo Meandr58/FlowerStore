@@ -1,0 +1,36 @@
+<h1>Корзина</h1>
+<table>
+    <tr>
+        <th>Название</th>
+        <th>Цена</th>
+        <th>Количество</th>
+        <th>Итого</th>
+        <th>Действия</th>
+    </tr>
+    {% for flower in flowers %}
+    <tr>
+        <td>{{ flower.name }}</td>
+        <td>{{ flower.price }}₽</td>
+        <td>{{ cart|get_item:flower.id }}</td>
+        <td>
+            <form method="POST" action="{% url 'update_cart_item' flower.id %}">
+                {% csrf_token %}
+                <input type="number" name="quantity" value="{{ cart|get_item:flower.id }}" min="1">
+                <button type="submit">Обновить</button>
+            </form>
+        </td>
+        <td>{{ flower.price|multiply:cart|get_item:flower.id }}₽</td>
+        <td>
+            <form method="POST" action="{% url 'remove_from_cart' flower.id %}">
+                {% csrf_token %}
+                <button type="submit">Удалить</button>
+            </form>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">Корзина пуста.</td>
+    </tr>
+    {% endfor %}
+</table>
+<h3>Общая сумма: {{ total_sum }}₽</h3>
