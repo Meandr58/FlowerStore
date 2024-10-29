@@ -1,3 +1,5 @@
+{% load cart_tags %}
+
 <h1>Корзина</h1>
 <table>
     <tr>
@@ -7,21 +9,21 @@
         <th>Итого</th>
         <th>Действия</th>
     </tr>
-    {% for flower in flowers %}
+    {% for item in cart_items %}
     <tr>
-        <td>{{ flower.name }}</td>
-        <td>{{ flower.price }}₽</td>
-        <td>{{ cart|get_item:flower.id }}</td>
+        <td>{{ item.flower.name }}</td>
+        <td>{{ item.flower.price }} ₽</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.flower.price|multiply:item.quantity }} ₽</td>
         <td>
-            <form method="POST" action="{% url 'update_cart_item' flower.id %}">
+            <form method="POST" action="{% url 'update_cart_item' item.flower.id %}">
                 {% csrf_token %}
-                <input type="number" name="quantity" value="{{ cart|get_item:flower.id }}" min="1">
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
                 <button type="submit">Обновить</button>
             </form>
         </td>
-        <td>{{ flower.price|multiply:cart|get_item:flower.id }}₽</td>
         <td>
-            <form method="POST" action="{% url 'remove_from_cart' flower.id %}">
+            <form method="POST" action="{% url 'remove_from_cart' item.flower.id %}">
                 {% csrf_token %}
                 <button type="submit">Удалить</button>
             </form>
@@ -33,4 +35,11 @@
     </tr>
     {% endfor %}
 </table>
-<h3>Общая сумма: {{ total_sum }}₽</h3>
+
+<h3>Общая сумма: {{ total_sum }} ₽</h3>
+
+{% if cart_items %}
+    <form method="GET" action="{% url 'order_flowers' %}">
+        <button type="submit">Перейти к оформлению заказа</button>
+    </form>
+{% endif %}

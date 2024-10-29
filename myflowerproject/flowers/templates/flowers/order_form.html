@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма заказа</title>
+</head>
+<body>
+{% if user.is_authenticated %}
+    <h1>Форма заказа</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Оформить заказ</button>
+    </form>
+{% else %}
+    <h1>Для оформления заказа войдите в систему и зарегистрируйтесь</h1>
+    <a href="{% url 'login' %}?next={{ request.path }}">Войти</a> или
+    <a href="{% url 'register' %}?next={{ request.path }}">Зарегистрироваться</a>
+{% endif %}
+
+
+</body>
+</html>

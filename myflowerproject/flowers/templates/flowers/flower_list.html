@@ -6,20 +6,30 @@
     <title>Flower Catalog</title>
 </head>
 <body>
-    <h1>Flower Catalog</h1>
+    <h1>Наш каталог</h1>
     <ul>
         {% for flower in flowers %}
-            <li>
-                <h2>{{ flower.name }}</h2>
-                <p>Цена: {{ flower.price }}₽</p>
-                <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
-                <form method="POST" action="{% url 'add_to_cart' flower.id %}">
-                    {% csrf_token %}
-                    <input type="number" name="quantity" value="1" min="1">
-                    <button type="submit">Добавить в корзину</button>
-                </form>
-            </li>
-        {% endfor %}
+    <li>
+        <h2><a href="{% url 'flower_detail' flower.id %}">{{ flower.name }}</a></h2>
+        <p>Цена: {{ flower.price }} ₽</p>
+
+        {% if flower.image %}
+            <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
+        {% else %}
+            <img src="/static/default_image.jpg" alt="No Image Available" style="width: 200px; height: auto;">
+        {% endif %}
+
+        <form method="POST" action="{% url 'add_to_cart' flower.id %}">
+            {% csrf_token %}
+            <input type="number" name="quantity" value="1" min="1">
+            <button type="submit">Добавить в корзину</button>
+        </form>
+    </li>
+{% endfor %}
     </ul>
+<div class="cart-button">
+    <a href="{% url 'cart_detail' %}" class="btn btn-primary">Перейти в корзину</a>
+</div>
+
 </body>
 </html>

@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Вход</title>
 </head>
 <body>
-    <h2>Login</h2>
+    <h2>Вход</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}  <!-- Выводим форму -->
-        <button type="submit">Login</button>
+        <button type="submit">Войти</button>
     </form>
+    <p>Нет аккаунта? <a href="{% url 'register' %}?next={{ request.GET.next }}">Зарегистрироваться</a></p>
 </body>
 </html>
