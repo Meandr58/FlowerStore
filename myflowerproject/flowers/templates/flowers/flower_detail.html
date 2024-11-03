@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+{% load static %}
+
 <html>
 <head>
     <title>{{ flower.name }}</title>
@@ -8,6 +10,8 @@
 <p>{{ flower.description }}</p>
 <p>Цена: {{ flower.price }} ₽</p>
 {% if flower.image %}
+    <p>Image path: {{ flower.image.path }}</p>
+    <p>Image URL: {{ flower.image.url }}</p>
     <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
 {% else %}
     <img src="/static/default_image.jpg" alt="No Image Available" style="width: 200px; height: auto;">

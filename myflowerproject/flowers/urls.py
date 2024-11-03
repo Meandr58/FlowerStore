@@ -1,8 +1,13 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+from .views import check_media_settings
+
 
 urlpatterns = [
+    path('flowers/', views.flower_list, name='flower_list'),
     path('', views.flower_list, name='flower_list'),  # Главная страница каталога
     path('register/', views.register, name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
@@ -16,6 +21,8 @@ urlpatterns = [
     path('order/', views.order_flowers, name='order_flowers'),
     path('success', views.success_page, name='success_page'),
     #    path('update_cart_item/<int:flower_id>/', views.update_cart_item, name='update_cart_item'),
-#   path('remove_from_cart/<int:flower_id>/', views.remove_from_cart, name='remove_from_cart'),
+    path('check-media/', check_media_settings, name='check_media'),
+  #   path('remove_from_cart/<int:flower_id>/', views.remove_from_cart, name='remove_from_cart'),
 ]
-
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

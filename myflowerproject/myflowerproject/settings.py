@@ -161,3 +161,12 @@ LOGGING = {
         },
     },
 }
+
+
+# Директория, где будут храниться загруженные медиафайлы
+
+
+# URL для доступа к медиафайлам
+MEDIA_URL = '/images/'
+#MEDIA_ROOT = BASE_DIR.parent / 'flower_images'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'myflowerproject', 'flower_images')

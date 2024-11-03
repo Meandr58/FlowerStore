@@ -4,6 +4,18 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, OrderForm
 from django.urls import reverse
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse
+import os
+
+
+def check_media_settings(request):
+    media_files = os.listdir(settings.MEDIA_ROOT)
+    return JsonResponse({
+        "MEDIA_ROOT": str(settings.MEDIA_ROOT),
+        "MEDIA_URL": settings.MEDIA_URL,
+        "media_files": media_files,
+    })
 
 def flower_list(request):
     flowers = Flower.objects.all()  # Получаем все цветы из базы данных

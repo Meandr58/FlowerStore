@@ -28,7 +28,7 @@ class Flower(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='flowers/', blank=True, null=True, default='default_image.png')
+    image = models.ImageField(upload_to='flower_images/', blank=True, null=True, default='default_image.png')
     additional_images = models.ManyToManyField('FlowerImage', related_name='flowers')
     stock = models.IntegerField()
     category = models.ManyToManyField(Category, related_name='flowers')  # Изменили поле category на связь с Category
@@ -38,7 +38,7 @@ class Flower(models.Model):
 
 class FlowerImage(models.Model):
     flower = models.ForeignKey(Flower, related_name='flower_images', on_delete=models.CASCADE, null=True, blank=True)
-    image = models.ImageField(upload_to='flower_images/')
+    image = models.ImageField(upload_to='flower_images')
     alt_text = models.CharField(max_length=255, blank=True)
 
     def str(self):
