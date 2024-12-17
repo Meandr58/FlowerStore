@@ -1,0 +1,11 @@
+<h2>Мои отзывы</h2>
+{% for review in reviews %}
+    <div class="review">
+        <h3>{{ review.product.name }}</h3>
+        <p>Рейтинг: {{ review.rating }}</p>
+        <p>{{ review.comment }}</p>
+        <a href="{% url 'edit_review' review.id %}">Редактировать</a> |
+        <a href="{% url 'delete_review' review.id %}">Удалить</a>
+    </div>
+{% endfor %}
+

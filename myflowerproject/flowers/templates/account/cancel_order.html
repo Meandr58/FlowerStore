@@ -1,11 +1,14 @@
 
-<h2>История заказов</h2>
 {% for order in orders %}
     <div class="order">
         <h3>Заказ №{{ order.id }} от {{ order.date }}</h3>
         <p>Статус: {{ order.status }}</p>
         <p>Сумма: {{ order.total_price }}</p>
         <a href="{% url 'order_detail' order.id %}">Подробнее</a> |
-        <a href="{% url 'repeat_order' order.id %}">Повторить заказ</a>
+        {% if order.status in ['Новый', 'В обработке'] %}
+            <a href="{% url 'cancel_order' order.id %}">Отменить заказ</a>
+        {% else %}
+            <p>Заказ не может быть отменён</p>
+        {% endif %}
     </div>
 {% endfor %}

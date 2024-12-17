@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from.models import Order
+from .models import Order, Profile, Address, Flower
 
 class CustomUserCreationForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True, help_text='Введите ваше имя')
@@ -29,11 +29,14 @@ class OrderForm(forms.Form):
             ('20-24', '20:00 - 24:00'),
         ],
         label='Предпочтительное время доставки'
+
     )
 
     show_sender_name = forms.BooleanField(required=False, label='Показать имя отправителя')
     comment = forms.CharField(widget=forms.Textarea, required=False, label='Комментарий')
     promo_code = forms.CharField(max_length=50, required=False, label='Промокод')
+    # flowers = forms.ModelMultipleChoiceField(queryset=Flower.objects.all(), widget=forms.CheckboxSelectMultiple)
+    # quantity = forms.IntegerField(min_value=1)
 class Meta:
     model = Order
     fields = [
@@ -50,3 +53,21 @@ class Meta:
         'promo_code',
     ]
 
+class UserEditForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=30, required=True, help_text='Введите ваше имя')
+    last_name = forms.CharField(max_length=30, required=True, help_text='Введите вашу фамилию')
+    email = forms.EmailField(required=True, help_text='Введите ваш email')
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['phone', 'address']  # или любые нужные вам поля
+
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = ['street', 'apartment']  # или любые нужные вам поля

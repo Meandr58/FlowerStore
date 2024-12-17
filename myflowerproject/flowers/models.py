@@ -1,16 +1,20 @@
 from django.db import models
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django import forms
-import datetime
+import datetime, uuid
 from django.utils import timezone
 from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 User = get_user_model()
 class YourForm(forms.Form):
     delivery_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
         initial=datetime.date.today  # Устанавливаем текущую дату по умолчанию
     )
+
 
 class YourModel(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
@@ -20,7 +24,7 @@ class Category(models.Model):
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
 
-    def str(self):
+    def __str__(self):
         return self.name
 
 
@@ -38,7 +42,7 @@ class Flower(models.Model):
 
 class FlowerImage(models.Model):
     flower = models.ForeignKey(Flower, related_name='flower_images', on_delete=models.CASCADE, null=True, blank=True)
-    image = models.ImageField(upload_to='flower_images')
+    image = models.ImageField(upload_to='flower_images/')
     alt_text = models.CharField(max_length=255, blank=True)
 
     def str(self):
@@ -56,7 +60,7 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders", null=True, blank=True) # Связь с пользователем
-    order_number = models.CharField(max_length=50, default="N/A")
+    #order_number = models.CharField(max_length=50, default="N/A", unique=True)
     recipient_name = models.CharField(max_length=100)
     card_text = models.TextField(blank=True, null=True)
     address = models.CharField(max_length=255)
@@ -71,8 +75,10 @@ class Order(models.Model):
     order_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
 
+    def get_total_order_price(self):
+        return sum(item.get_total_price() for item in self.items.all())
     def str(self):
-        return f'Order {self.order_number} for {self.recipient_name}'
+        return f'Order № {self.id} for {self.recipient_name}'
 
 
 class OrderStatusHistory(models.Model):
@@ -81,7 +87,21 @@ class OrderStatusHistory(models.Model):
     changed_at = models.DateTimeField(auto_now_add=True)
 
     def str(self):
-        return f"Status {self.status} for Order {self.order.order_number} at {self.changed_at}"
+        return f"Status {self.status} for Order {self.order_id} at {self.changed_at}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    flower = models.ForeignKey('Flower', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def get_total_price(self):
+        price = self.price if self.price is not None else 0
+        quantity = self.quantity if self.quantity is not None else 0
+        return quantity * price
+
+    def __str__(self):
+        return f"{self.quantity} x {self.flower.name} - {self.get_total_price()} currency units"
 
 
 class Review(models.Model):
@@ -107,7 +127,6 @@ class Report(models.Model):
     def __str__(self):
         return f"Report for {self.date}"
 
-
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -115,7 +134,7 @@ class Cart(models.Model):
     def __str__(self):
         return f"Cart {self.id} for {self.user}"
 
-# Метод для расчета общей стоимости
+    # Метод для расчета общей стоимости
     def get_total_price(self):
         total = sum(item.get_total_price() for item in self.items.all())
         return total
@@ -140,8 +159,10 @@ class UserReqisterForm(UserCreationForm):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=15, blank=True)
+    phone = models.CharField(max_length=15, blank=True)
     address = models.TextField(blank=True)
+    order_updates = models.BooleanField(default=True)
+    promotions = models.BooleanField(default=True)
     is_blocked = models.BooleanField(default=False) # Поле блокировки пользователя
 
     def __str__(self):
@@ -154,4 +175,19 @@ class Profile(models.Model):
         return Order.objects.filter(user_id=self.user.id)
         #return Order.objects.filter(recipient_name=self.user.get_full_name())
 
-# Create your models here.
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    street = models.CharField(max_length=255)
+    apartment = models.CharField(max_length=100, null=True, blank=True)
+    city = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    is_default = models.BooleanField(default=False)
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    flower = models.ForeignKey('Flower', on_delete=models.CASCADE)
+
+@receiver(post_save, sender=User)
+def create_cart_for_user(sender, instance, created, **kwargs):
+    if created:
+        Cart.objects.create(user=instance)

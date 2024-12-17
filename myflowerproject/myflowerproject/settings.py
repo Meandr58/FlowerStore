@@ -127,6 +127,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'flower_list'
 LOGOUT_REDIRECT_URL = 'flower_list'
 
+LOGIN_URL = ('loginу'
+             ''
+             ''
+             '')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -167,6 +172,6 @@ LOGGING = {
 
 
 # URL для доступа к медиафайлам
-MEDIA_URL = '/images/'
+MEDIA_URL = '/media/'
 #MEDIA_ROOT = BASE_DIR.parent / 'flower_images'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'myflowerproject', 'flower_images')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'flower_images')

@@ -1,6 +1,35 @@
-<h1>{{ category.name }}</h1>
-<ul>
-  {% for product in products %}
-    <li>{{ product.name }} - {{ product.price }}</li>
-  {% endfor %}
-</ul>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ category.name }}</title>
+</head>
+<body>
+    <h1>Категория: {{ category.name }}</h1>
+
+    {% if flowers %}
+        <ul>
+            {% for flower in flowers %}
+                <li>
+                    <h2><a href="{% url 'flower_detail' flower.id %}">{{ flower.name }}</a></h2>
+                    <p>Цена: {{ flower.price }} ₽</p>
+
+                    {% if flower.image %}
+                        <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
+                    {% else %}
+                        <img src="/static/default_image.jpg" alt="No Image Available" style="width: 200px; height: auto;">
+                    {% endif %}
+
+                    <!-- Форма добавления в корзину -->
+                    <form method="POST" action="{% url 'add_to_cart' flower.id %}">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="1" min="1">
+                        <button type="submit">Добавить в корзину</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет товаров в данной категории.</p>
+    {% endif %}
+</body>
+</html>

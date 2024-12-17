@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Category, Flower, Order, Cart, CartItem
+from .models import Category, Flower, Order, OrderItem, Cart, CartItem, Profile, Address, Favorite, Review
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, OrderForm
+from .forms import CustomUserCreationForm, OrderForm, ProfileForm, AddressForm, UserEditForm
 from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
@@ -17,19 +17,25 @@ def check_media_settings(request):
         "media_files": media_files,
     })
 
-def flower_list(request):
-    flowers = Flower.objects.all()  # Получаем все цветы из базы данных
-    return render(request, 'flowers/flower_list.html', {'flowers': flowers})
+#def flower_list(request):
+#    flowers = Flower.objects.all()  # Получаем все цветы из базы данных
+#    categories = Category.objects.all()
+#    return render(request, 'flowers/flower_list.html', {'flowers': flowers, 'categories': categories})
 
+def flower_list(request):
+    categories = Category.objects.prefetch_related('flowers')
+    return render(request, 'flowers/flower_list.html', {'categories': categories})
 
 def category_detail(request, slug):
     category = get_object_or_404(Category, slug=slug)
     flowers = category.flowers.all()  # Изменили 'products' на 'flowers'
-    return render(request, 'flowers/category_detail.html', {'category': category, 'flowers': flowers})
+    no_flowers = not flowers.exists() # Проверяем наличие данного товара
+    return render(request, 'flowers/category_detail.html', {'category': category, 'flowers': flowers, 'no_flowers': no_flowers})
 
-def flower_detail(request, id):
-    flower = get_object_or_404(Flower, id=id)
-    return render(request, 'flowers/flower_detail.html', {'flower': flower})
+def flower_detail(request, pk):
+    flower = get_object_or_404(Flower, pk=pk)
+    categories = Category.objects.all()
+    return render(request, 'flowers/flower_detail.html', {'flower': flower, 'categories': categories})
 
 
 def add_to_cart(request, flower_id):
@@ -161,15 +167,15 @@ def register(request):
 @login_required(login_url='/login')
 def order_flowers(request):
     if not request.user.is_authenticated:
-        # перенаправляем на страницу входа с параметром 'next'
+        # Перенаправляем на страницу входа с параметром 'next'
         return redirect(f"{reverse('login')}?next={request.path}")
 
-    # Если пользователь авторизован, продолжить оформление заказа
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
             # Создаем экземпляр заказа, используя данные из формы
             order = Order(
+                user=request.user,
                 recipient_name=form.cleaned_data['recipient_name'],
                 card_text=form.cleaned_data['card_text'],
                 address=form.cleaned_data['address'],
@@ -182,18 +188,109 @@ def order_flowers(request):
                 comment=form.cleaned_data['comment'],
                 promo_code=form.cleaned_data['promo_code']
             )
-            # Сохраняем заказ в базе данных
-            order.save()
+            order.save()  # Сохраняем заказ
+
+            # Шаг 1: Переносим товары из корзины в заказ
+            if hasattr(request.user, 'cart'):
+                print(f"Корзина пользователя {request.user} найдена.")
+                cart_items = CartItem.objects.filter(cart=request.user.cart)
+                print(f"Количество товаров в корзине: {cart_items.count()}")
+                for cart_item in cart_items:
+                    print(f"Товар: {cart_item.flower.name}, Количество: {cart_item.quantity}")
+                    OrderItem.objects.create(
+                        order=order,
+                        flower=cart_item.flower,
+                        quantity=cart_item.quantity,
+                        price=cart_item.flower.price
+                    )
+                # Очищаем корзину после оформления заказа
+                cart_items.delete()
 
             # Добавляем сообщение об успешном оформлении заказа
-            messages.success(request, f'Ваш заказ №{order.order_number} оформлен успешно!')
+            messages.success(request, f'Ваш заказ №{order.id} оформлен успешно!')
 
-            return redirect('success_page')
+            # Перенаправление на страницу успешного заказа
+            return redirect('success_page', order_id=order.id)
     else:
         form = OrderForm()
 
     return render(request, 'flowers/order_form.html', {'form': form})
+def success_page(request, order_id):
+    return render(request, 'flowers/success.html', {'order_id': order_id})
 
 
-def success_page(request):
-    return render(request, 'flowers/success.html')
+@login_required
+def profile_view(request):
+    profile = Profile.objects.get(user=request.user)
+    addresses = Address.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        user_form = UserEditForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(request.POST, instance=profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()  # Сохраняем изменения в модели User
+            profile_form.save()  # Сохраняем изменения в модели Profile
+            return redirect('profile')  # Перенаправляем обратно на страницу профиля
+    else:
+        user_form = UserEditForm(instance=request.user)
+        profile_form = ProfileForm(instance=profile)
+
+    return render(request, 'profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'addresses': addresses
+    })
+
+def add_address(request):
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            address.save()
+            return redirect('profile')
+    else:
+        form = AddressForm()
+    return render(request, 'add_address.html', {'form': form})
+
+def order_history(request):
+    orders = Order.objects.filter(user=request.user)
+    return render(request, 'order_history.html', {'orders': orders})
+
+def favorites(request):
+    favorites = Favorite.objects.filter(user=request.user)
+    return render(request, 'favorites.html', {'favorites': favorites})
+
+def add_to_favorites(request, flower_id):
+    flower = Flower.objects.get(id=flower_id)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, flower=flower)
+    return redirect('favorites')
+
+def reviews(request):
+    reviews = Review.objects.filter(user=request.user)
+    return render(request, 'reviews.html', {'reviews': reviews})
+
+def add_review(request, product_id):
+    if request.method == 'POST':
+        review = Review(
+            user=request.user,
+            product_id=product_id,
+            rating=request.POST['rating'],
+            comment=request.POST['comment']
+        )
+        review.save()
+        return redirect('reviews')
+
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    if order.status in ['Новый', 'В обработке']:
+        order.status = 'Отменён'
+        order.save()
+        messages.success(request, f'Заказ №{order_id} успешно отменён.')
+    else:
+        messages.error(request, 'Этот заказ больше нельзя отменить.')
+    return redirect('order_history')
+
+
+

@@ -1,0 +1,10 @@
+<h2>Избранное</h2>
+{% for product in favorite_products %}
+    <div class="product">
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.price }}</p>
+        <a href="{% url 'add_to_cart' product.id %}">Добавить в корзину</a> |
+        <a href="{% url 'remove_favorite' product.id %}">Удалить из избранного</a>
+    </div>
+{% endfor %}
+

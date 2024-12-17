@@ -26,3 +26,9 @@ def create_order_status_history(sender, instance, **kwargs):
         if instance.status != previous_instance.status:
             # Создаем новую запись в истории только если статус изменился
             OrderStatusHistory.objects.create(order=instance, status=instance.status)
+
+@receiver(post_save, sender=OrderStatusHistory)
+def update_order_status(sender, instance, **kwargs):
+    order = instance.order
+    order.status = instance.status
+    order.save()
