@@ -1,0 +1,65 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f8f8;
+}
+
+header {
+    background-color: #4caf50;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 1rem;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: #4caf50;
+    color: white;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+/* Поставим отступы между столбцами */
+.order-history th, .order-history td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Зададим отступы для таблицы */
+.order-history {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order-history thead {
+    background-color: #f4f4f4;
+}
+
+.order-history tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.order-history tbody tr:hover {
+    background-color: #e9e9e9;
+}

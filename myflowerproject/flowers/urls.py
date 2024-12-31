@@ -18,10 +18,12 @@ urlpatterns = [
     path('flowers/<int:pk>/', views.flower_detail, name='flower_detail'),  # Страница отдельного цветка или букета
 
     # Корзина
-    path('add_to_cart/<int:flower_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/add/<int:flower_id>/', views.add_to_cart, name='add_to_cart'),
     path('cart/', views.cart_detail, name='cart_detail'),
-    path('update-item/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
-    path('remove-item/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+    # path('cart/update/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
+    path('cart/update/<int:flower_id>/', views.update_cart_item, name='update_cart_item'),
+    path('cart/remove/<int:flower_id>/', views.remove_from_cart, name='remove_from_cart'),
+    path('cart/clear/', views.clear_cart, name='clear_cart'),
 
     # Заказы
     path('order/', views.order_flowers, name='order_flowers'),
@@ -29,10 +31,16 @@ urlpatterns = [
 
     # Профиль и адреса
     path('profile/', views.profile_view, name='profile'),
-    path('add_address/', views.add_address, name='add_address'),
+    #path('add_address/', views.add_address, name='add_address'),
     path('order_history/', views.order_history, name='order_history'),
     path('favorites/', views.favorites, name='favorites'),
     path('reviews/', views.reviews, name='reviews'),
+    path('favorites/remove/<int:flower_id>/', views.remove_favorite, name='remove_favorite'),
+    path('order/<int:order_id>/', views.order_detail, name='order_detail'),
+    path('address/add/', views.add_address, name='add_address'),
+    path('address/edit/<int:address_id>/', views.edit_address, name='edit_address'),
+    path('address/delete/<int:address_id>/', views.delete_address, name='delete_address'),
+
 
     # Проверка медиа-файлов (опционально)
     path('check-media/', views.check_media_settings, name='check_media'),

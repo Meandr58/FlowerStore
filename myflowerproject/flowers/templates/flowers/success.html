@@ -9,7 +9,31 @@
 </head>
 <body>
     <h1>Спасибо за ваш заказ!</h1>
-    <p>Ваш заказ №{{ order_id }} был успешно оформлен. Мы свяжемся с вами для подтверждения доставки.</p>
+    <p>Ваш заказ №{{ order.id }} был успешно оформлен. Мы свяжемся с вами для подтверждения доставки.</p>
+<h2>Детали заказа:</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Наименование</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.flower.name }}</td>
+                <td>{{ item.price }} ₽</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.total_price }} ₽</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Общая сумма: {{ total_cost }}</h3>
+
     <a href="{% url 'flower_list' %}">Вернуться к каталогу</a> <!-- Ссылка на каталог товаров -->
 </body>
 </html>

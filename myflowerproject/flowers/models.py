@@ -49,18 +49,24 @@ class FlowerImage(models.Model):
         return self.alt_text if self.alt_text else "Flower Image"
 
 
-class Order(models.Model):
-    STATUS_CHOICES = [
-        ('new', 'Новый'),
-        ('processing', 'В обработке'),
-        ('ready', 'Готов к доставке'),
-        ('delivering', 'Доставляется'),
-        ('delivered', 'Доставлен'),
-        ('cancelled', 'Отменён'),
-    ]
+STATUS_CHOICES = [
+    ('new', 'Новый'),
+    ('processing', 'В обработке'),
+    ('ready', 'Готов к доставке'),
+    ('delivering', 'Доставляется'),
+    ('delivered', 'Доставлен'),
+    ('cancelled', 'Отменён'),
+]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="orders", null=True, blank=True) # Связь с пользователем
-    #order_number = models.CharField(max_length=50, default="N/A", unique=True)
+
+class Order(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        null=True,
+        blank=True
+    )
     recipient_name = models.CharField(max_length=100)
     card_text = models.TextField(blank=True, null=True)
     address = models.CharField(max_length=255)
@@ -73,22 +79,33 @@ class Order(models.Model):
     comment = models.TextField(blank=True, null=True)
     promo_code = models.CharField(max_length=50, blank=True, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new'
+    )
 
     def get_total_order_price(self):
         return sum(item.get_total_price() for item in self.items.all())
+
     def str(self):
         return f'Order № {self.id} for {self.recipient_name}'
 
 
 class OrderStatusHistory(models.Model):
-    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='status_history')
-    status = models.CharField(max_length=20, choices=Order.STATUS_CHOICES)
+    order = models.ForeignKey(
+        'Order',
+        on_delete=models.CASCADE,
+        related_name='status_history'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES
+    )
     changed_at = models.DateTimeField(auto_now_add=True)
 
     def str(self):
-        return f"Status {self.status} for Order {self.order_id} at {self.changed_at}"
-
+        return f"Status {self.status} for Order {self.order.id} at {self.changed_at}"
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     flower = models.ForeignKey('Flower', on_delete=models.CASCADE)
@@ -139,6 +156,7 @@ class Cart(models.Model):
         total = sum(item.get_total_price() for item in self.items.all())
         return total
 
+
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     flower = models.ForeignKey(Flower, on_delete=models.CASCADE)
@@ -151,6 +169,7 @@ class CartItem(models.Model):
         return self.quantity * self.flower.price
 
 class UserReqisterForm(UserCreationForm):
+
     email = forms.EmailField()
 
     class Meta:
@@ -177,15 +196,25 @@ class Profile(models.Model):
 
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    street = models.CharField(max_length=255)
+    address = models.CharField(max_length=255)
     apartment = models.CharField(max_length=100, null=True, blank=True)
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
     is_default = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f"{self.address}, {self.city}"
+
 class Favorite(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    flower = models.ForeignKey('Flower', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
+    flower = models.ForeignKey('Flower', on_delete=models.CASCADE, related_name="favorited_by")
+    added_at = models.DateTimeField(auto_now_add=True)  # Дата добавления в избранное
+
+    class Meta:
+        unique_together = ('user', 'flower')  # Гарантирует, что пользователь не может добавить один товар несколько раз
+
+    def str(self):
+        return f"{self.user.username} - {self.flower.name}"
 
 @receiver(post_save, sender=User)
 def create_cart_for_user(sender, instance, created, **kwargs):

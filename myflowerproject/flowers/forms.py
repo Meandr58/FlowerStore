@@ -62,12 +62,25 @@ class UserEditForm(forms.ModelForm):
         model = User
         fields = ('first_name', 'last_name', 'email')
 
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['phone', 'address']  # или любые нужные вам поля
+        fields = ['user', 'phone']
+        widgets = {
+            'user': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
+        labels = {
+            'phone': 'Номер телефона',
+        }
 
 class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
-        fields = ['street', 'apartment']  # или любые нужные вам поля
+        fields = ['address', 'apartment', 'city', 'postal_code', 'is_default']
+        labels = {
+            'address': 'Улица, дом',
+            'apartment': 'Квартира',
+            'is_default': 'По умолчанию',
+        }
+

@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Category, Flower, Order, OrderItem, Cart, CartItem, Profile, Address, Favorite, Review
+from .utils import get_or_create_cart
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, OrderForm, ProfileForm, AddressForm, UserEditForm
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 import os
 
 
@@ -38,114 +40,161 @@ def flower_detail(request, pk):
     return render(request, 'flowers/flower_detail.html', {'flower': flower, 'categories': categories})
 
 
-def add_to_cart(request, flower_id):
-    flower = Flower.objects.get(id=flower_id)
-    quantity = request.POST.get('quantity', 1)  # Значение по умолчанию 1
-    # Логика добавления товара в сессию (или базу данных)
-    cart = request.session.get('cart', {})
-    if flower_id in cart:
-        cart[flower_id] += int(quantity)  # Увеличиваем количество
-    else:
-        cart[flower_id] = int(quantity)  # Добавляем новый товар
-    request.session['cart'] = cart
-    messages.success(request, f"{flower.name} добавлен в корзину.")
-    return redirect('flower_list')  # Перенаправляем на каталог
-
-def update_cart_item(request, flower_id):
-    quantity = request.POST.get('quantity')
-    if quantity.isdigit() and int(quantity) > 0:
-        cart = request.session.get('cart', {})
-        if flower_id in cart:
-            cart[flower_id] = int(quantity)
-            request.session['cart'] = cart
-            messages.success(request, "Количество товара обновлено.")
-        else:
-            messages.error(request, "Товар не найден в корзине.")
-    else:
-        messages.error(request, "Некорректное количество.")
-    return redirect('cart_detail')  # Перенаправляем на страницу корзины
-
-def remove_from_cart(request, flower_id):
-    cart = request.session.get('cart', {})
-    if flower_id in cart:
-        del cart[flower_id]
-        request.session['cart'] = cart
-        messages.success(request, "Товар удален из корзины.")
-    else:
-        messages.error(request, "Товар не найден в корзине.")
-    return redirect('cart_detail')  # Перенаправляем на страницу корзины
-
-
 def cart_detail(request):
-    # Получаем корзину из сессии
-    cart = request.session.get('cart', {})
-    cart_items = []
+    if request.user.is_authenticated:
+        # Для авторизованных пользователей получаем корзину из базы данных
+        cart = Cart.objects.filter(user=request.user).first()
+        if cart:
+            cart_items = cart.items.select_related('flower').all()
+            for item in cart_items:
+                item.total_price = item.flower.price * item.quantity  # Вычисляем стоимость для каждого элемента
+            total_price = sum(item.total_price for item in cart_items)
+        else:
+            cart_items = []
+            total_price = 0
+    else:
+        # Для анонимных пользователей получаем корзину из сессии
+        session_cart = request.session.get('cart', {})
+        cart_items = []
+        for flower_id, quantity in session_cart.items():
+            flower = get_object_or_404(Flower, id=flower_id)
+            cart_items.append({
+                'flower': flower,
+                'quantity': quantity,
+                'total_price': flower.price * quantity,  # Вычисляем стоимость
+            })
+        total_price = sum(item['total_price'] for item in cart_items)
 
-    # Если корзина пуста, можно вернуть пустую страницу или сообщение
-    if not cart:
-        return render(request, 'flowers/cart_detail.html', {
-            'cart': cart,
-            'cart_items': cart_items,  # Пустой список
-            'total_sum': 0,  # Общая сумма равна 0
-            'empty_cart_message': "Ваша корзина пуста."  # Сообщение для пустой корзины
-        })
-
-    # Извлекаем информацию о цветах по ID из корзины
-    for flower_id, quantity in cart.items():
-        flower = get_object_or_404(Flower, id=flower_id)
-        cart_items.append({
-            'flower': flower,
-            'quantity': quantity,
-        })
-
-    # Вычисляем общую сумму товаров в корзине
-    total_sum = sum(item['flower'].price * item['quantity'] for item in cart_items)
+    empty_cart_message = "Ваша корзина пуста." if not cart_items else None
 
     return render(request, 'flowers/cart_detail.html', {
-        'cart': cart,
-        'cart_items': cart_items,  # Передаем элементы корзины
-        'total_sum': total_sum  # Передаем общую сумму
+        'cart_items': cart_items,
+        'total_price': total_price,
+        'empty_cart_message': empty_cart_message,
     })
 
-# Функция для изменения количества товаров
-def update_cart_item(request, item_id):
-    # Получаем корзину из сессии
-    cart = request.session.get('cart', {})
+# Вспомогательная функция для проверки количества
+def validate_quantity(quantity):
+    try:
+        quantity = int(quantity)
+        if quantity < 1:
+            return 1
+        return quantity
+    except ValueError:
+        return 1
 
-    # Проверяем, существует ли элемент корзины с данным item_id
-    if str(item_id) in cart:
-        if request.method == 'POST':
-            new_quantity = int(request.POST.get('quantity'))
+# Универсальная функция для добавления и изменения товаров
+def modify_cart(request, flower_id, action='add'):
+    if not request.user.is_authenticated:
+        messages.error(request, "Для управления корзиной войдите в аккаунт.")
+        return redirect('login')
 
-            if new_quantity > 0:
-                # Обновляем количество товара в корзине
-                cart[str(item_id)] = new_quantity
-                messages.success(request, 'Количество обновлено успешно')
-            else:
-                # Удаляем товар из корзины, если количество равно 0
-                cart.pop(str(item_id))
-                messages.success(request, 'Товар удален из корзины')
+    # Получить или создать корзину пользователя
+    cart, _ = Cart.objects.get_or_create(user=request.user)
 
-            # Обновляем сессию с новой корзиной
-            request.session['cart'] = cart
+    # Получить товар
+    flower = get_object_or_404(Flower, id=flower_id)
+
+    # Получить количество из POST-запроса
+    quantity = validate_quantity(request.POST.get('quantity'))
+
+    if action == 'add':
+        # Найти или создать элемент корзины
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, flower=flower)
+        if created:
+            # Устанавливаем количество для нового товара
+            cart_item.quantity = quantity
+        else:
+            # Увеличиваем количество, если товар уже есть
+            cart_item.quantity += quantity
+        cart_item.save()
+    elif action == 'update':
+        # Обновляем только существующий товар
+        cart_item = CartItem.objects.filter(cart=cart, flower=flower).first()
+        if cart_item:
+            cart_item.quantity = quantity
+            cart_item.save()
+        else:
+            messages.error(request, "Товар не найден в вашей корзине.")
+            return redirect('cart_detail')
+    elif action == 'remove':
+        # Удаляем товар из корзины
+        cart_item = CartItem.objects.filter(cart=cart, flower=flower).first()
+        if cart_item:
+            cart_item.delete()
+
+    # Уведомление пользователя об успешном изменении
+    action_message = "добавлен в корзину" if action == 'add' else "обновлено"
+    messages.success(request, f"{flower.name} {action_message}. Количество: {cart_item.quantity}.")
+    return redirect('cart_detail')
+
+# Добавление товара в корзину
+def add_to_cart(request, flower_id):
+    return modify_cart(request, flower_id, action='add')
+
+# Обновление количества товара
+# def update_cart_item(request, flower_id):
+# return modify_cart(request, flower_id, action='update')
+@login_required(login_url='/login')
+def update_cart_item(request, flower_id):
+    if request.method == 'POST':
+        cart = Cart.objects.filter(user=request.user).first()
+        if not cart:
+            messages.error(request, "Ваша корзина пуста.")
+            return redirect('cart_detail')
+
+        flower = get_object_or_404(Flower, id=flower_id)
+        quantity = request.POST.get('quantity')
+        try:
+            quantity = int(quantity)
+            if quantity < 1:
+                messages.error(request, "Количество должно быть больше нуля.")
+                return redirect('cart_detail')
+        except ValueError:
+            messages.error(request, "Некорректное количество.")
+            return redirect('cart_detail')
+
+        cart_item = CartItem.objects.filter(cart=cart, flower=flower).first()
+        if cart_item:
+            cart_item.quantity = quantity
+            cart_item.save()
+            messages.success(request, f"Количество товара {flower.name} обновлено.")
+        else:
+            messages.error(request, "Товар не найден в корзине.")
 
     return redirect('cart_detail')
 
-# Функция для удаления товара из корзины
-def remove_from_cart(request, item_id):
-    # Получаем корзину из сессии
-    cart = request.session.get('cart', {})
+# Удаление товара из корзины
+def remove_from_cart(request, flower_id):
+    if not request.user.is_authenticated:
+        messages.error(request, "Для удаления товара из корзины войдите в аккаунт.")
+        return redirect('login')
 
-    # Проверяем, есть ли товар с данным item_id в корзине
-    if str(item_id) in cart:
-        if request.method == 'POST':
-            # Удаляем товар из корзины
-            cart.pop(str(item_id))
-            messages.success(request, 'Товар удален из корзины')
+    cart = Cart.objects.filter(user=request.user).first()
+    if not cart:
+        messages.error(request, "Ваша корзина пуста.")
+        return redirect('cart_detail')
 
-            # Обновляем сессию с новой корзиной
-            request.session['cart'] = cart
+    flower = get_object_or_404(Flower, id=flower_id)
+    cart_item = CartItem.objects.filter(cart=cart, flower=flower).first()
+    if cart_item:
+        cart_item.delete()
+        messages.success(request, "Товар удален из корзины.")
+    else:
+        messages.error(request, "Товар не найден в вашей корзине.")
 
+    return redirect('cart_detail')
+
+
+@login_required(login_url='/login')
+def clear_cart(request):
+    # Проверяем наличие корзины у пользователя
+    cart = Cart.objects.filter(user=request.user).first()
+    if cart:
+        cart.items.all().delete()  # Удаляем все товары из корзины
+        messages.success(request, "Корзина очищена.")
+    else:
+        messages.error(request, "Ваша корзина уже пуста.")
     return redirect('cart_detail')
 
 
@@ -166,14 +215,10 @@ def register(request):
 
 @login_required(login_url='/login')
 def order_flowers(request):
-    if not request.user.is_authenticated:
-        # Перенаправляем на страницу входа с параметром 'next'
-        return redirect(f"{reverse('login')}?next={request.path}")
-
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
-            # Создаем экземпляр заказа, используя данные из формы
+            # Создаем заказ
             order = Order(
                 user=request.user,
                 recipient_name=form.cleaned_data['recipient_name'],
@@ -182,64 +227,84 @@ def order_flowers(request):
                 apartment=form.cleaned_data['apartment'],
                 entrance=form.cleaned_data['entrance'],
                 phone=form.cleaned_data['phone'],
-                delivery_date=form.cleaned_data['delivery_date'],  # Новое поле
-                delivery_time=form.cleaned_data['delivery_time'],  # Новое поле
+                delivery_date=form.cleaned_data['delivery_date'],
+                delivery_time=form.cleaned_data['delivery_time'],
                 show_sender_name=form.cleaned_data['show_sender_name'],
                 comment=form.cleaned_data['comment'],
                 promo_code=form.cleaned_data['promo_code']
             )
-            order.save()  # Сохраняем заказ
+            order.save()
 
-            # Шаг 1: Переносим товары из корзины в заказ
-            if hasattr(request.user, 'cart'):
-                print(f"Корзина пользователя {request.user} найдена.")
-                cart_items = CartItem.objects.filter(cart=request.user.cart)
-                print(f"Количество товаров в корзине: {cart_items.count()}")
-                for cart_item in cart_items:
-                    print(f"Товар: {cart_item.flower.name}, Количество: {cart_item.quantity}")
+            # Проверяем наличие корзины
+            cart = Cart.objects.filter(user=request.user).first()
+            if cart:
+                # Переносим товары из корзины в заказ
+                cart_items = CartItem.objects.filter(cart=cart)
+                for item in cart_items:
                     OrderItem.objects.create(
                         order=order,
-                        flower=cart_item.flower,
-                        quantity=cart_item.quantity,
-                        price=cart_item.flower.price
+                        flower=item.flower,
+                        quantity=item.quantity,
+                        price=item.flower.price
                     )
-                # Очищаем корзину после оформления заказа
+                # Очищаем корзину
                 cart_items.delete()
+            else:
+                print(f"У пользователя {request.user} корзина отсутствует.")
 
-            # Добавляем сообщение об успешном оформлении заказа
+            # Успешное сообщение и редирект
             messages.success(request, f'Ваш заказ №{order.id} оформлен успешно!')
-
-            # Перенаправление на страницу успешного заказа
             return redirect('success_page', order_id=order.id)
     else:
         form = OrderForm()
 
     return render(request, 'flowers/order_form.html', {'form': form})
+
 def success_page(request, order_id):
-    return render(request, 'flowers/success.html', {'order_id': order_id})
+    # Получаем заказ по ID, связанный с текущим пользователем
+    order = get_object_or_404(Order, id=order_id, user=request.user)
 
+    # Получаем список позиций в заказе
+    order_items = OrderItem.objects.filter(order=order)
 
+    # Вычисляем общую сумму заказа
+    # total_cost = sum(item.quantity * item.price for item in order_items)
+    total_cost = 0
+    for item in order_items:
+        item.total_price = item.quantity * item.price  # Вычисляем стоимость для каждого товара
+        total_cost += item.total_price  # Суммируем общую стоимость
+
+    # Передаём данные в шаблон
+    return render(request, 'flowers/success.html', {
+        'order': order,
+        'order_items': order_items,
+        'total_cost': total_cost
+    })
 @login_required
 def profile_view(request):
     profile = Profile.objects.get(user=request.user)
     addresses = Address.objects.filter(user=request.user)
+    orders = Order.objects.filter(user=request.user)  # История заказов
+    favorites = Favorite.objects.filter(user=request.user)  # Избранное
 
     if request.method == 'POST':
         user_form = UserEditForm(request.POST, instance=request.user)
         profile_form = ProfileForm(request.POST, instance=profile)
 
         if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()  # Сохраняем изменения в модели User
-            profile_form.save()  # Сохраняем изменения в модели Profile
-            return redirect('profile')  # Перенаправляем обратно на страницу профиля
+            user_form.save()
+            profile_form.save()
+            return redirect('profile')
     else:
         user_form = UserEditForm(instance=request.user)
         profile_form = ProfileForm(instance=profile)
 
-    return render(request, 'profile.html', {
+    return render(request, 'flowers/profile.html', {
         'user_form': user_form,
         'profile_form': profile_form,
-        'addresses': addresses
+        'addresses': addresses,
+        'orders': orders,
+        'favorites': favorites,
     })
 
 def add_address(request):
@@ -254,6 +319,38 @@ def add_address(request):
         form = AddressForm()
     return render(request, 'add_address.html', {'form': form})
 
+@login_required
+def edit_address(request):
+    # Получаем текущий адрес пользователя (если он есть)
+    address = request.user.profile.address  # Или используйте свою модель для адреса
+
+    if request.method == 'POST':
+        form = AddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')  # Перенаправление на страницу профиля (или другую)
+    else:
+        form = AddressForm(instance=address)
+
+    return render(request, 'flowers/edit_address.html', {'form': form})
+
+@login_required
+def delete_address(request):
+    try:
+        # Получаем профиль пользователя и удаляем адрес
+        profile = request.user.profile  # Или используйте свою модель для профиля и адреса
+        profile.address = None  # Убираем адрес
+        profile.save()
+
+        # Показываем сообщение об успешном удалении
+        messages.success(request, 'Адрес был удален успешно.')
+
+    except Profile.DoesNotExist:
+        messages.error(request, 'Профиль не найден.')
+
+    # Перенаправляем на страницу профиля или другую страницу
+    return redirect('profile')  # Замените 'profile' на нужный путь
+
 def order_history(request):
     orders = Order.objects.filter(user=request.user)
     return render(request, 'order_history.html', {'orders': orders})
@@ -265,6 +362,13 @@ def favorites(request):
 def add_to_favorites(request, flower_id):
     flower = Flower.objects.get(id=flower_id)
     favorite, created = Favorite.objects.get_or_create(user=request.user, flower=flower)
+    return redirect('favorites')
+
+@login_required
+def remove_favorite(request, flower_id):
+    favorite = get_object_or_404(Favorite, user=request.user, flower_id=flower_id)
+    favorite.delete()
+    messages.success(request, "Товар удалён из избранного.")
     return redirect('favorites')
 
 def reviews(request):
@@ -293,4 +397,51 @@ def cancel_order(request, order_id):
     return redirect('order_history')
 
 
+def order_detail(request, order_id):
+    """
+    Отображение деталей заказа.
+    """
+    # Словарь для перевода статусов
+    STATUS_TRANSLATIONS = dict([
+        ('new', 'Новый'),
+        ('processing', 'В обработке'),
+        ('ready', 'Готов к доставке'),
+        ('delivering', 'Доставляется'),
+        ('delivered', 'Доставлен'),
+        ('cancelled', 'Отменён'),
+    ])
+
+    # Получение заказа или вывод ошибки
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    # Получаем адрес доставки
+    delivery_address = order.address
+
+    # Получаем состав заказа
+    items_data = [
+        {
+            'name': item.flower.name,  # Название цветка
+            'quantity': item.quantity,  # Количество
+            'unit_price': item.price,  # Цена за единицу
+            'total_price': item.get_total_price(),  # Общая стоимость
+        }
+        for item in order.items.all()
+    ]
+
+    # Рассчитываем общую стоимость заказа
+    order_total_price = sum(item['total_price'] for item in items_data)
+
+    # Переводим статус заказа
+    status_display = STATUS_TRANSLATIONS.get(order.status, order.status)
+
+    # Формируем контекст для шаблона
+    context = {
+        'order': order,
+        'delivery_address': delivery_address,
+        'status_display': status_display,
+        'items': items_data,
+        'total_price': order_total_price,  # Общая стоимость заказа
+    }
+
+    return render(request, 'flowers/order_detail.html', context)
 

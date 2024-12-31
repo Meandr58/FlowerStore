@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h1>Профиль</h1>
+
+    <!-- Раздел редактирования профиля -->
+    <section>
+        <h2>Редактирование профиля</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset>
+                <legend>Персональная информация</legend>
+                {{ user_form.as_p }}
+            </fieldset>
+            <fieldset>
+                <legend>Контактная информация</legend>
+                {{ profile_form.as_p }}
+            </fieldset>
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        </form>
+    </section>
+
+    <!-- Раздел адресов -->
+    <section>
+        <h2>Адреса доставки</h2>
+        {% if addresses %}
+            <ul>
+                {% for address in addresses %}
+                    <li>
+                        {{ address.street }}, {{ address.city }}
+                        <a href="{% url 'edit_address' address.id %}">Редактировать</a> |
+                        <a href="{% url 'delete_address' address.id %}">Удалить</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>У вас пока нет сохранённых адресов.</p>
+        {% endif %}
+        <a href="{% url 'add_address' %}" class="btn btn-secondary">Добавить новый адрес</a>
+    </section>
+
+    <!-- Раздел истории заказов -->
+    <section>
+        <h2>История заказов</h2>
+        {% if orders %}
+            <table class="order-history">
+                <thead>
+                    <tr>
+                        <th>Номер заказа</th>
+                        <th>Дата</th>
+                        <th>Статус</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td><a href="{% url 'order_detail' order.id %}">#{{ order.id }}</a></td>
+                            <td>{{ order.order_date|date:"d.m.Y H:i" }}</td>
+                            <td>{{ order.get_status_display }}</td>
+                            <td>{{ order.get_total_order_price|floatformat:2 }} ₽</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>У вас пока нет заказов.</p>
+        {% endif %}
+    </section>
+
+    <!-- Раздел избранного -->
+    <section>
+        <h2>Избранное</h2>
+        {% if favorites %}
+            <ul class="favorite-list">
+                {% for favorite in favorites %}
+                    <li>
+                        <a href="{% url 'flower_detail' favorite.flower.id %}">
+                            {{ favorite.flower.name }}
+                        </a>
+                        <a href="{% url 'remove_favorite' favorite.id %}" class="btn btn-danger">Удалить</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>У вас пока нет избранных товаров.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+

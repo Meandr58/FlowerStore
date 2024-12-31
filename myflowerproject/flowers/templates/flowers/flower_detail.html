@@ -24,7 +24,7 @@
 
     <form method="POST" action="{% url 'add_to_cart' flower.id %}">
         {% csrf_token %}
-        <input type="number" name="quantity" value="1" min="1">
+        <input type="number" name="quantity" min="1" value="1" required>
         <button type="submit">Добавить в корзину</button>
     </form>
 
