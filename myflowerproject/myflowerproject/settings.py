@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'flowers.apps.FlowersConfig',
+    'telegram_bot',
+    'myflowerproject',
 ]
 
 MIDDLEWARE = [
@@ -107,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -175,3 +177,5 @@ LOGGING = {
 MEDIA_URL = '/media/'
 #MEDIA_ROOT = BASE_DIR.parent / 'flower_images'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'flower_images')
+
+TELEGRAM_BOT_TOKEN = '7617951152:AAEwkvEbHvvBnbvddd-a7l6UAWfBfew2-fw'

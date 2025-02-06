@@ -16,7 +16,7 @@
                 <th>Название</th>
                 <th>Количество</th>
                 <th>Цена за единицу</th>
-                <th>Общая стоимость</th>
+                <th>Стоимость</th>
             </tr>
         </thead>
         <tbody>
@@ -30,6 +30,7 @@
             {% endfor %}
         </tbody>
     </table>
-    <p><strong>Общая сумма:</strong> {{ order.total_price }}</p>
+    <p><strong></strong> {{ order.total_price }}</p>
+    <p><strong> </strong> {{ order.get_total_price }}</p>
 </body>
 </html>

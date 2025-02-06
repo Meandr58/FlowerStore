@@ -37,11 +37,22 @@
                                 <img src="/static/default_image.jpg" alt="No Image Available" style="width: 200px; height: auto;">
                             {% endif %}
 
+                            <!-- Сообщение об успешном добавлении -->
+                            {% if messages %}
+                                {% for message in messages %}
+                                    {% if flower.id|stringformat:"s" in message.tags %}
+                                        <div class="alert alert-success message-flower" id="message-{{ flower.id }}">
+                                            {{ message }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+
                             <!-- Форма для добавления в корзину -->
                             <form method="POST" action="{% url 'add_to_cart' flower.id %}">
                                 {% csrf_token %}
                                 <input type="number" name="quantity" value="1" min="1">
-                                <button type="submit">Добавить в корзину</button>
+                                <button type="submit" class="btn-primary">Добавить в корзину</button>
                             </form>
                         </li>
                     {% empty %}
@@ -55,5 +66,43 @@
     <div class="cart-button">
         <a href="{% url 'cart_detail' %}" class="btn btn-primary">Перейти в корзину</a>
     </div>
+
+    <style>
+        /* Базовый стиль для сообщения */
+        .message-flower {
+            padding: 10px; /* Отступы */
+            margin: 10px 0; /* Отступы сверху и снизу */
+            border: 1px solid #c3e6cb; /* Граница */
+            background-color: #d4edda; /* Фон */
+            color: #155724; /* Цвет текста */
+            border-radius: 5px; /* Скругление углов */
+            opacity: 1; /* Начальная прозрачность */
+            transition: opacity 3s ease, height 0.5s ease, margin 0.5s ease, padding 0.5s ease; /* Плавные переходы */
+        }
+
+        .message-flower.hidden {
+            opacity: 0; /* Полностью прозрачное */
+            height: 0; /* Уменьшение высоты */
+            margin: 0; /* Уменьшение отступов */
+            padding: 0; /* Уменьшение отступов внутри */
+            overflow: hidden; /* Скрытие содержимого */
+        }
+    </style>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const messages = document.querySelectorAll('.message-flower');
+            messages.forEach(message => {
+                setTimeout(() => {
+                    message.classList.add('hidden');
+                }, 3000); // Сообщения исчезают через 3 секунды
+            });
+        });
+    </script>
+
+
 </body>
+
+
 </html>

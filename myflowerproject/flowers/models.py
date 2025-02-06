@@ -183,6 +183,7 @@ class Profile(models.Model):
     order_updates = models.BooleanField(default=True)
     promotions = models.BooleanField(default=True)
     is_blocked = models.BooleanField(default=False) # Поле блокировки пользователя
+    telegram_id = models.BigIntegerField(unique=True, null=True, blank=True)
 
     def __str__(self):
         return f'Профиль пользователя {self.user.username}'

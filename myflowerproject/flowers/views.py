@@ -108,26 +108,32 @@ def modify_cart(request, flower_id, action='add'):
             # Увеличиваем количество, если товар уже есть
             cart_item.quantity += quantity
         cart_item.save()
+        messages.success(request, f"Товар {flower.name} успешно добавлен в корзину. Количество: {cart_item.quantity}.", extra_tags=f"{flower.id}")
+        # Оставляем пользователя на текущей странице
+        return redirect(request.META.get('HTTP_REFERER', 'catalog'))  # Возвращаем на предыдущую страницу или в каталог
+
     elif action == 'update':
         # Обновляем только существующий товар
         cart_item = CartItem.objects.filter(cart=cart, flower=flower).first()
         if cart_item:
             cart_item.quantity = quantity
             cart_item.save()
+            messages.success(request, f"Количество товара {flower.name} обновлено: {cart_item.quantity}.")
         else:
             messages.error(request, "Товар не найден в вашей корзине.")
             return redirect('cart_detail')
+
     elif action == 'remove':
         # Удаляем товар из корзины
         cart_item = CartItem.objects.filter(cart=cart, flower=flower).first()
         if cart_item:
             cart_item.delete()
+            messages.success(request, f"Товар {flower.name} удалён из корзины.")
+        else:
+            messages.error(request, "Товар не найден в вашей корзине.")
 
-    # Уведомление пользователя об успешном изменении
-    action_message = "добавлен в корзину" if action == 'add' else "обновлено"
-    messages.success(request, f"{flower.name} {action_message}. Количество: {cart_item.quantity}.")
+    # Возвращаем в корзину для других действий (обновление или удаление)
     return redirect('cart_detail')
-
 # Добавление товара в корзину
 def add_to_cart(request, flower_id):
     return modify_cart(request, flower_id, action='add')
