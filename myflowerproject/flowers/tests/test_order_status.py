@@ -1,18 +1,27 @@
 from django.test import TestCase
-from flowers.models import Order, OrderStatusHistory
-from django.db.models.signals import post_save
+from django.contrib.auth.models import User
+from flowers.models import Order, Item, OrderStatusHistory, OrderItem
+from telegram_bot.bot import Bot
+from unittest.mock import patch
 
+class OrderTestCase(TestCase):
+    @patch('telegram_bot.bot.Bot.send_message')
+    def test_send_telegram_notification_on_order_creation(self, mock_send_message):
+        # Создаем пользователя
+        user = User.objects.create_user(username='testuser', password='testpass')
 
-class OrderStatusTestCase(TestCase):
-    def test_order_status_history_on_status_change(self):
-        # Создаем заказ
-        order = Order.objects.create(user_id=1, items="Flowers", status="new")
+        # Создаем новый заказ
+        order = Order.objects.create(user=user, status="new")
 
-        # Изменяем статус
-        order.status = "shipped"
-        order.save()
+        # Создаем элемент и добавляем его в заказ
+        item = Item.objects.create(name="Flowers")
+        OrderItem.objects.create(order=order, item=item, quantity=1, price=10.00)
 
-        # Проверяем, что создана запись в истории статусов
+        # Проверяем, что бот отправил сообщение
+        message = f"🛒 Новый заказ №{order.id}\n📦 Статус: {order.status}"
+        mock_send_message.assert_called_with(chat_id="@admin_chat_id", text=message)
+
+        # Проверяем, что запись в истории статусов создана
         status_history = OrderStatusHistory.objects.filter(order=order)
-        self.assertEqual(status_history.count(), 2)  # Должна быть новая запись
-        self.assertEqual(status_history.last().status, "shipped")
+        self.assertEqual(status_history.count(), 1)
+        self.assertEqual(status_history.first().status, order.status)

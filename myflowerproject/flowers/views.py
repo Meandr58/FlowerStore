@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from .models import Category, Flower, Order, OrderItem, Cart, CartItem, Profile, Address, Favorite, Review
 from .utils import get_or_create_cart
 from django.contrib import messages
@@ -7,8 +8,9 @@ from .forms import CustomUserCreationForm, OrderForm, ProfileForm, AddressForm, 
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse, Http404
+from django.http import HttpResponseRedirect, JsonResponse, Http404
 import os
+import json
 
 
 def check_media_settings(request):
@@ -237,9 +239,11 @@ def order_flowers(request):
                 delivery_time=form.cleaned_data['delivery_time'],
                 show_sender_name=form.cleaned_data['show_sender_name'],
                 comment=form.cleaned_data['comment'],
-                promo_code=form.cleaned_data['promo_code']
+                promo_code=form.cleaned_data['promo_code'],
+                status='new'
             )
             order.save()
+
 
             # Проверяем наличие корзины
             cart = Cart.objects.filter(user=request.user).first()
@@ -249,7 +253,7 @@ def order_flowers(request):
                 for item in cart_items:
                     OrderItem.objects.create(
                         order=order,
-                        flower=item.flower,
+                        item=item.flower,
                         quantity=item.quantity,
                         price=item.flower.price
                     )
@@ -261,6 +265,8 @@ def order_flowers(request):
             # Успешное сообщение и редирект
             messages.success(request, f'Ваш заказ №{order.id} оформлен успешно!')
             return redirect('success_page', order_id=order.id)
+        else:
+            print(form.errors) # выводим ошибки
     else:
         form = OrderForm()
 
@@ -286,6 +292,19 @@ def success_page(request, order_id):
         'order_items': order_items,
         'total_cost': total_cost
     })
+
+@csrf_exempt
+def order_status_update(request, order_id):
+    if request.method == 'PATCH':
+        data = json.loads(request.body)
+        try:
+            order = Order.objects.get(id=order_id)
+            order.status = data['status']
+            order.save()
+            return JsonResponse({'status': 'success'})
+        except Order.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Order not found'}, status=404)
+
 @login_required
 def profile_view(request):
     profile = Profile.objects.get(user=request.user)

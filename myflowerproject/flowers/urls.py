@@ -28,6 +28,7 @@ urlpatterns = [
     # Заказы
     path('order/', views.order_flowers, name='order_flowers'),
     path('success/<int:order_id>/', views.success_page, name='success_page'),
+    path('order-status-update/<int:order_id>/', views.order_status_update, name='order-status-update'),
 
     # Профиль и адреса
     path('profile/', views.profile_view, name='profile'),

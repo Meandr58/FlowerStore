@@ -1,40 +1,45 @@
-from telegram import Update, Message, Chat
+from telegram import Update, Message, Chat, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import CallbackContext
 from unittest import mock
 import unittest
 from telegram_bot.bot_handlers import start, help_command
 
-
-class BotTestCase(unittest.TestCase):
-    def setUp(self):
-        # Создаем мок-объект для Update
+class BotTestCase(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.update = mock.Mock(spec=Update)
         self.update.message = mock.Mock(spec=Message)
         self.update.message.chat = mock.Mock(spec=Chat)
-        self.update.message.chat_id = 123456789  # Пример chat_id
+        self.update.message.chat_id = 123456789
 
-        # Создаем мок-объект для CallbackContext
         self.context = mock.Mock(spec=CallbackContext)
         self.context.bot = mock.Mock()
 
-    @mock.patch("telegram.Bot.send_message")
-    def test_start_command(self, mock_send_message):
-        # Вызываем команду /start
-        start(self.update, self.context)
+    async def test_start_command(self):
+        print("Running test_start_command")
 
-        # Проверяем, что бот отправил сообщение
-        mock_send_message.assert_called_with(
-            chat_id=self.update.message.chat_id,
-            text="Привет! Я бот."
+        expected_keyboard = ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text="Повторить заказ"), KeyboardButton(text="Оставить отзыв")],
+                [KeyboardButton(text="Статус заказа"), KeyboardButton(text="Аналитика")]
+            ],
+            resize_keyboard=True
         )
 
-    @mock.patch("telegram.Bot.send_message")
-    def test_help_command(self, mock_send_message):
-        # Вызываем команду /help
-        help_command(self.update, self.context)  # Исправлено: передаем update и context
+        await start(self.update, self.context)
 
-        # Проверяем, что бот отправил сообщение
-        mock_send_message.assert_called_with(
-            chat_id=self.update.message.chat_id,
-            text="Помощь: /start /help"
+        self.update.message.reply_text.assert_called_once_with(
+            "Привет! Выберите действие:",
+            reply_markup=expected_keyboard
         )
+
+    async def test_help_command(self):
+        print("Running test_help_command")
+
+        await help_command(self.update, self.context)
+
+        self.update.message.reply_text.assert_called_once_with(
+            "Список команд:\n/start – начать\n/help – справка"
+        )
+
+if __name__ == "__main__":
+    unittest.main()

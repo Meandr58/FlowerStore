@@ -58,6 +58,11 @@ STATUS_CHOICES = [
     ('cancelled', 'Отменён'),
 ]
 
+class Item(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 class Order(models.Model):
     user = models.ForeignKey(
@@ -67,6 +72,7 @@ class Order(models.Model):
         null=True,
         blank=True
     )
+    items = models.ManyToManyField(Item, through='OrderItem', related_name='orders')
     recipient_name = models.CharField(max_length=100)
     card_text = models.TextField(blank=True, null=True)
     address = models.CharField(max_length=255)
@@ -107,8 +113,8 @@ class OrderStatusHistory(models.Model):
     def str(self):
         return f"Status {self.status} for Order {self.order.id} at {self.changed_at}"
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    flower = models.ForeignKey('Flower', on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
 

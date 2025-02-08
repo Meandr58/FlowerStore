@@ -22,9 +22,11 @@ def webhook_view(request):
 app = Application.builder().token(TELEGRAM_TOKEN).build()
 
 async def start(update: Update, context: CallbackContext):
+    print("Start command called") # Отладочная информация
     await update.message.reply_text("Привет! Я бот для заказа цветов.")
 
 async def help_command(update: Update, context: CallbackContext):
+    print("Help command called") # Отладочная информация
     await update.message.reply_text("Список команд:\n/start – начать\n/help – справка")
 
 # Регистрируем команды
