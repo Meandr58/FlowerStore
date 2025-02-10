@@ -1,25 +1,48 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    {% load static %}  <!-- Добавлено -->
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Мой магазин цветов{% endblock %}</title>
+    <title>{% block title %}ПАН-ТЮЛЬПАН{% endblock %}</title>
+
+    <!-- Подключение Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&family=Montserrat:wght@400;500;700&family=Dela+Gothic+One&display=swap" rel="stylesheet">
+
+    <!-- Подключение стилей -->
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link rel="stylesheet" href="{% static 'flowers/styles.css' %}">
 </head>
 <body>
+
     <header>
-        <h1>Магазин цветов</h1>
-        <nav>
+        <!-- Верхняя панель -->
+        <div class="top-bar">
+            <div class="logo-container">
+                <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
+                <span class="site-title">ПАН-ТЮЛЬПАН</span>
+            </div>
+            <div class="contact-info">
+                <p>📞 +7 (999) 123-45-67 | <a href="https://t.me/pan_tulpan_bot" target="_blank">@pan_tulpan_bot</a></p>
+            </div>
+            <div class="auth-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}">Выйти</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Войти</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Нижняя панель (навигация) -->
+        <nav class="nav-bar">
             <ul>
                 <li><a href="{% url 'flower_list' %}">Каталог</a></li>
+                <li><a href="#">Цветы</a></li>
+                <li><a href="#">Букеты</a></li>
+                <li><a href="#">Подарки</a></li>
                 <li><a href="{% url 'cart_detail' %}">Корзина</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'logout' %}">Выйти</a></li>
-                {% else %}
-                    <li><a href="{% url 'login' %}">Войти</a></li>
-                {% endif %}
+                <li><a href="#">Статус заказа</a></li>
             </ul>
         </nav>
     </header>
@@ -30,7 +53,7 @@
     </main>
 
     <footer>
-        <p>© 2024 Магазин цветов. Все права защищены.</p>
+        <p>© 2025 ПАН-ТЮЛЬПАН. Все права защищены.</p>
     </footer>
 </body>
 </html>

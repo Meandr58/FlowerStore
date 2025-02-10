@@ -1,7 +1,12 @@
-<h2>Регистрация</h2>
-<form method="POST" action="{% url 'register' %}{% if next %}?next={{ next }}{% endif %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Зарегистрироваться</button>
-</form>
-<p>Уже зарегистрированы? <a href="{% url 'login' %}{% if next %}?next={{ next }}{% endif %}">Войти</a></p>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <h2>Регистрация</h2>
+    <form method="POST" action="{% url 'register' %}{% if next %}?next={{ next }}{% endif %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+    <p>Уже зарегистрированы? <a href="{% url 'login' %}{% if next %}?next={{ next }}{% endif %}">Войти</a></p>
+{% endblock %}

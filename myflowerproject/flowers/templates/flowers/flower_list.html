@@ -1,30 +1,23 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
 
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Наш каталог</title>
-</head>
-<body>
-    <h1>Наш каталог</h1>
+{% block content %}
+    <h2>Наш каталог</h2>
 
-    <h2>Категории</h2>
-
+    <h3>Категории</h3>
     <ul>
         {% for category in categories %}
             <li><a href="{% url 'category_detail' category.slug %}">{{ category.name }}</a></li>
+        {% empty %}
+            <li>Категории не найдены</li>
         {% endfor %}
     </ul>
 
-
-
+    <h3>Продукты</h3>
     <ul>
         {% for category in categories %}
             <li>
                 <h2><a href="{% url 'category_detail' category.slug %}">{{ category.name }}</a></h2>
-
                 <ul>
                     {% for flower in category.flowers.all %}
                         <li>
@@ -34,7 +27,7 @@
                             {% if flower.image %}
                                 <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
                             {% else %}
-                                <img src="/static/default_image.jpg" alt="No Image Available" style="width: 200px; height: auto;">
+                                <img src="{% static 'default_image.jpg' %}" alt="No Image Available" style="width: 200px; height: auto;">
                             {% endif %}
 
                             <!-- Сообщение об успешном добавлении -->
@@ -60,49 +53,12 @@
                     {% endfor %}
                 </ul>
             </li>
+        {% empty %}
+            <p>Нет доступных категорий</p>
         {% endfor %}
     </ul>
 
     <div class="cart-button">
         <a href="{% url 'cart_detail' %}" class="btn btn-primary">Перейти в корзину</a>
     </div>
-
-    <style>
-        /* Базовый стиль для сообщения */
-        .message-flower {
-            padding: 10px; /* Отступы */
-            margin: 10px 0; /* Отступы сверху и снизу */
-            border: 1px solid #c3e6cb; /* Граница */
-            background-color: #d4edda; /* Фон */
-            color: #155724; /* Цвет текста */
-            border-radius: 5px; /* Скругление углов */
-            opacity: 1; /* Начальная прозрачность */
-            transition: opacity 3s ease, height 0.5s ease, margin 0.5s ease, padding 0.5s ease; /* Плавные переходы */
-        }
-
-        .message-flower.hidden {
-            opacity: 0; /* Полностью прозрачное */
-            height: 0; /* Уменьшение высоты */
-            margin: 0; /* Уменьшение отступов */
-            padding: 0; /* Уменьшение отступов внутри */
-            overflow: hidden; /* Скрытие содержимого */
-        }
-    </style>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const messages = document.querySelectorAll('.message-flower');
-            messages.forEach(message => {
-                setTimeout(() => {
-                    message.classList.add('hidden');
-                }, 3000); // Сообщения исчезают через 3 секунды
-            });
-        });
-    </script>
-
-
-</body>
-
-
-</html>
+{% endblock %}

@@ -218,7 +218,7 @@ def register(request):
     else:
         form = CustomUserCreationForm()
 
-    return render(request, 'flowers/register.html', {'form': form, 'next': next_url})
+    return render(request, 'registration/register.html', {'form': form, 'next': next_url})
 
 
 @login_required(login_url='/login')
