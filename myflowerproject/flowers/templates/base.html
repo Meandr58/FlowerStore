@@ -4,7 +4,7 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ПАН-ТЮЛЬПАН{% endblock %}</title>
+    <title>{% block title %}Онлайн магазин цветов{% endblock %}</title>
 
     <!-- Подключение Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&family=Montserrat:wght@400;500;700&family=Dela+Gothic+One&display=swap" rel="stylesheet">
@@ -19,8 +19,8 @@
         <!-- Верхняя панель -->
         <div class="top-bar">
             <div class="logo-container">
-                <img src="{% static 'images/logo.png' %}" alt="Логотип" class="logo">
-                <span class="site-title">ПАН-ТЮЛЬПАН</span>
+                <img src="{% static 'logo_pan.png' %}" alt="Логотип" class="logo">
+                <span class="site-title">ПАН ТЮЛЬПАН</span>
             </div>
             <div class="contact-info">
                 <p>📞 +7 (999) 123-45-67 | <a href="https://t.me/pan_tulpan_bot" target="_blank">@pan_tulpan_bot</a></p>
@@ -47,13 +47,16 @@
         </nav>
     </header>
 
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
+    <div class="content-wrapper">
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
 
     <footer>
-        <p>© 2025 ПАН-ТЮЛЬПАН. Все права защищены.</p>
+        <p>© 2025 ПАН ТЮЛЬПАН. Все права защищены.</p>
     </footer>
+
 </body>
 </html>

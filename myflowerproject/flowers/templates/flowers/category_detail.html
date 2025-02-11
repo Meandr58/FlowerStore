@@ -1,26 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ category.name }}</title>
-</head>
-<body>
-    <h1>Категория: {{ category.name }}</h1>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1 class="category-title">Категория: {{ category.name }}</h1>
 
     {% if flowers %}
-        <ul>
+        <ul class="flower-list">
             {% for flower in flowers %}
-                <li>
+                <li class="flower-item">
                     <h2><a href="{% url 'flower_detail' flower.id %}">{{ flower.name }}</a></h2>
-                    <p>Цена: {{ flower.price }} ₽</p>
+                    <p class="flower-price">Цена: {{ flower.price }} ₽</p>
 
                     {% if flower.image %}
-                        <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
+                        <img src="{{ flower.image.url }}" alt="{{ flower.name }}">
                     {% else %}
-                        <img src="/static/default_image.jpg" alt="No Image Available" style="width: 200px; height: auto;">
+                        <img src="{% static 'default_image.jpg' %}" alt="No Image Available">
                     {% endif %}
 
                     <!-- Форма добавления в корзину -->
-                    <form method="POST" action="{% url 'add_to_cart' flower.id %}">
+                    <form method="POST" action="{% url 'add_to_cart' flower.id %}" class="add-to-cart-form">
                         {% csrf_token %}
                         <input type="number" name="quantity" value="1" min="1">
                         <button type="submit">Добавить в корзину</button>
@@ -31,5 +30,5 @@
     {% else %}
         <p>Нет товаров в данной категории.</p>
     {% endif %}
-</body>
-</html>
+</div>
+{% endblock %}
