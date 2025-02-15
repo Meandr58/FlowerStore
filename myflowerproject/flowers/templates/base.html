@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&family=Montserrat:wght@400;500;700&family=Dela+Gothic+One&display=swap" rel="stylesheet">
 
     <!-- Подключение стилей -->
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link rel="stylesheet" href="{% static 'flowers/styles.css' %}">
 </head>
 <body>
@@ -38,9 +37,9 @@
         <nav class="nav-bar">
             <ul>
                 <li><a href="{% url 'flower_list' %}">Каталог</a></li>
-                <li><a href="#">Цветы</a></li>
-                <li><a href="#">Букеты</a></li>
-                <li><a href="#">Подарки</a></li>
+                <li><a href="{% url 'category_detail' 'Flowers' %}">Цветы</a></li>
+                <li><a href="{% url 'category_detail' 'bouquet' %}">Букеты</a></li>
+                <li><a href="{% url 'category_detail' 'Gifts' %}">Подарки</a></li>
                 <li><a href="{% url 'cart_detail' %}">Корзина</a></li>
                 <li><a href="#">Статус заказа</a></li>
             </ul>
@@ -55,7 +54,7 @@
     </div>
 
     <footer>
-        <p>© 2025 ПАН ТЮЛЬПАН. Все права защищены.</p>
+        <p>© 2025. Онлайн магазин цветов ПАН ТЮЛЬПАН. Все права защищены.</p>
     </footer>
 
 </body>

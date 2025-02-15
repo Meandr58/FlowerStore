@@ -4,59 +4,59 @@
 {% block content %}
     <h2>Наш каталог</h2>
 
+    <!-- Категории -->
     <h3>Категории</h3>
-    <ul>
-        {% for category in categories %}
-            <li><a href="{% url 'category_detail' category.slug %}">{{ category.name }}</a></li>
+    <div class="category-container">
+    {% for category in categories %}
+        <div class="category-card">
+            <a href="{% url 'category_detail' category.slug %}">
+                {% if category.slug == 'Flowers' %}
+                    <img src="{% static 'flower_category.jpg' %}" alt="{{ category.name }}">
+                {% elif category.slug == 'Gifts' %}
+                    <img src="{% static 'gift_category.jpg' %}" alt="{{ category.name }}">
+                {% elif category.slug == 'bouquet' %}
+                    <img src="{% static 'buket_category.jpg' %}" alt="{{ category.name }}">
+                {% else %}
+                    <img src="{% static 'default_category.jpg' %}" alt="{{ category.name }}">
+                {% endif %}
+                <p>{{ category.name }}</p>
+            </a>
+        </div>
         {% empty %}
-            <li>Категории не найдены</li>
+            <p>Категории не найдены</p>
         {% endfor %}
-    </ul>
+    </div>
 
+    <!-- Продукты -->
     <h3>Продукты</h3>
-    <ul>
+    <div class="product-list">
         {% for category in categories %}
-            <li>
-                <h2><a href="{% url 'category_detail' category.slug %}">{{ category.name }}</a></h2>
-                <ul>
+            <div class="category-block">
+                <h2>{{ category.name }}</h2>
+                <ul class="flower-list">
                     {% for flower in category.flowers.all %}
-                        <li>
+                        <li class="flower-item">
                             <h3><a href="{% url 'flower_detail' flower.id %}">{{ flower.name }}</a></h3>
-                            <p>Цена: {{ flower.price }} ₽</p>
+                            <p class="flower-price">Цена: {{ flower.price }} ₽</p>
 
-                            {% if flower.image %}
-                                <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
-                            {% else %}
-                                <img src="{% static 'default_image.jpg' %}" alt="No Image Available" style="width: 200px; height: auto;">
-                            {% endif %}
+                            <img src="{% if flower.image %}{{ flower.image.url }}{% else %}{% static 'default_image.jpg' %}{% endif %}" alt="{{ flower.name }}">
 
-                            <!-- Сообщение об успешном добавлении -->
-                            {% if messages %}
-                                {% for message in messages %}
-                                    {% if flower.id|stringformat:"s" in message.tags %}
-                                        <div class="alert alert-success message-flower" id="message-{{ flower.id }}">
-                                            {{ message }}
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-
-                            <!-- Форма для добавления в корзину -->
-                            <form method="POST" action="{% url 'add_to_cart' flower.id %}">
+                            <!-- Форма добавления в корзину -->
+                            <form method="POST" action="{% url 'add_to_cart' flower.id %}" class="add-to-cart-form">
                                 {% csrf_token %}
                                 <input type="number" name="quantity" value="1" min="1">
-                                <button type="submit" class="btn-primary">Добавить в корзину</button>
+                                <button type="submit">Добавить в корзину</button>
                             </form>
                         </li>
                     {% empty %}
                         <p>Нет товаров в этой категории</p>
                     {% endfor %}
                 </ul>
-            </li>
+            </div>
         {% empty %}
             <p>Нет доступных категорий</p>
         {% endfor %}
-    </ul>
+    </div>
 
     <div class="cart-button">
         <a href="{% url 'cart_detail' %}" class="btn btn-primary">Перейти в корзину</a>

@@ -74,14 +74,14 @@ footer {
     padding: 1rem;
     background-color: #c86aa0; /* Цвет футера */
     color: white;
-    # position: fixed;
-    # bottom: 0;
+    position: fixed;
+    bottom: 0;
     width: 100%;
 }
 
 /* Основные стили страницы категорий/ ДОПОЛНЕНИЕ */
 .category-title {
-    color: #925eaf;
+    color: #925eaf
     font-size: 28px;
     font-weight: bold;
     margin-bottom: 20px;
@@ -123,20 +123,6 @@ footer {
     display: flex;
     flex-direction: column;
     gap: 30px;
-}
-
-.container {
-    width: 80%;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.category-flower-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: left;
-}
 
 .category-list {
     display: flex;
@@ -166,9 +152,9 @@ footer {
 .flower-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 20px;
     list-style: none;
-     padding: 0;
+    padding: 0;
 }
 
 @media (min-width: 768px) {
@@ -181,8 +167,7 @@ footer {
 .flower-card {
     border: 1px solid #ddd;
     padding: 10px;
-    border-radius: 12px;
-    background: #fff;
+    border-radius: 5px;
     text-align: center;
     width: 250px;
 }
@@ -209,11 +194,10 @@ footer {
     text-align: center;
     transition: transform 0.3s, box-shadow 0.3s;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    transform: scale(0.9); /* Уменьшение размера карточки на 80% */
 }
 
 .flower-item:hover {
-    transform: scale(0.8) translateY(-5px); /* Ументшение размера и смещение при наведении*/
+    transform: translateY(-5px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
