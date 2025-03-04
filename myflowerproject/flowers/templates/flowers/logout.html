@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="logout-container">
+    <h2 class="logout-title">Выход из аккаунта</h2>
+    <p class="logout-message">Вы уверены, что хотите выйти?</p>
+
+    <form method="post" action="{% url 'logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="btn logout-btn">Выйти</button>
+    </form>
+
+    <a href="{% url 'flower_list' %}" class="btn back-btn">Отмена</a>
+</div>
+{% endblock %}

@@ -11,7 +11,7 @@ urlpatterns = [
     # Регистрация и авторизация
     path('register/', views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='flowers/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(template_name='flowers/logout.html'), name='logout'),
 
     # Категории и товары
     path('category/<slug:slug>/', views.category_detail, name='category_detail'),

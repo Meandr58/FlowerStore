@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Category, Flower, Order, OrderItem, Cart, CartItem, Profile, Address, Favorite, Review
 from .utils import get_or_create_cart
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, OrderForm, ProfileForm, AddressForm, UserEditForm
 from django.urls import reverse
@@ -469,4 +470,13 @@ def order_detail(request, order_id):
     }
 
     return render(request, 'flowers/order_detail.html', context)
+
+@login_required
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect('login')  # Перенаправление на страницу входа после выхода
+    return render(request, 'logout.html')
+
+
 

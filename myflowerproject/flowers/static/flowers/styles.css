@@ -46,7 +46,9 @@ body {
 .nav-bar {
     background-color: #c86aa0; /* Цвет фона */
     padding: 10px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Выравнивание элементов в одну линию */
 }
 
 .nav-bar ul {
@@ -54,11 +56,14 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
+    align-items: center; /* Выравнивание элементов в одну линию */
+    flex-wrap: nowrap; /* Запрет на перенос элементов на новую строку */
+    flex-grow: 1; /* Разрешает списку занимать доступное пространство */
 }
 
 .nav-bar li {
-    margin: 0 15px;
+    margin: 0 10px; /* Уменьшили отступы между элементами */
+    white-space: nowrap; /* Запрещает перенос текста */
 }
 
 .nav-bar a {
@@ -66,6 +71,21 @@ body {
     text-decoration: none;
     font-family: "Montserrat", sans-serif;
     font-weight: 500;
+}
+
+/* Стили для ссылки "Профиль" */
+.profile-btn {
+    #background: #925eaf;
+    padding: 10px 20px; /* Добавляем отступы для ссылки */
+    border-radius: 5px; /* Скругление углов */
+    color: white; /* Цвет текста */
+    text-decoration: none; /* Убираем подчеркивание */
+    white-space: nowrap; /* Запрещает перенос текста */
+    flex-shrink: 0; /* Запрещает сжатие ссылки */
+}
+
+.profile-btn:hover {
+    background: #c86aa0;
 }
 
 /* Футер */
@@ -193,7 +213,7 @@ footer {
 }
 
 .btn {
-    background-color: #28a745;
+    background-color: #c86aa0;
     color: white;
     padding: 8px 12px;
     border: none;
@@ -290,4 +310,285 @@ footer {
 /* Общие отступы */
 .content-wrapper {
     padding-bottom: 100px; /* Чтобы футер не закрывал контент */
+}/* Стили для детальной страницы цветка */
+.flower-detail-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
+.flower-title {
+    font-size: 32px;
+    color: #c86aa0;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.flower-detail-content {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.flower-image-container {
+    flex: 1;
+}
+
+.flower-detail-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.flower-info {
+    flex: 2;
+}
+
+.flower-description {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.flower-price {
+    font-size: 20px;
+    font-weight: bold;
+    color: #c86aa0;
+    margin-bottom: 15px;
+}
+
+/* Категории */
+.flower-category-title {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #925eaf;
+}
+
+.flower-category-list {
+    list-style: none;
+    padding: 0;
+}
+
+.flower-category-list li {
+    display: inline;
+    margin-right: 10px;
+}
+
+.category-link {
+    text-decoration: none;
+    color: #c86aa0;
+    font-weight: bold;
+}
+
+.category-link:hover {
+    text-decoration: underline;
+}
+
+/* Форма добавления в корзину */
+.add-to-cart-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.quantity-input {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.add-to-cart-btn {
+    background: #c86aa0;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-to-cart-btn:hover {
+    background: #925eaf;
+}
+
+/* Кнопка "Назад к каталогу" */
+.back-to-catalog {
+    display: inline-block;
+    margin-top: 15px;
+    background: #c86aa0;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.back-to-catalog:hover {
+    background: #c86aa0;
+}
+
+/* Стили для блока кнопок навигации */
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Общие стили кнопок */
+.btn {
+    display: inline-block;
+    padding: 10px 15px;
+    font-size: 16px;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    transition: 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+/* Кнопки "Назад в каталог" и "В раздел" */
+.btn-nav {
+    background-color: #c86aa0;
+    color: white;
+}
+
+.btn-nav:hover {
+    background-color: #a65288;
+}
+
+/* Кнопка "В корзину" */
+.add-to-cart-btn {
+    background-color: #925eaf;
+    color: white;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #7b4990;
+}
+
+/* Контейнер формы */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Заголовок */
+.login-title {
+    color: #925eaf;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Форма */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Поля ввода */
+.login-form input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+}
+
+/* Кнопка входа */
+.login-btn {
+    background-color: #c86aa0;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.login-btn:hover {
+    background-color: #925eaf;
+}
+
+/* Ссылка на регистрацию */
+.register-link {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.register-link a {
+    color: #925eaf;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+/* Контейнер страницы выхода */
+.logout-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Заголовок */
+.logout-title {
+    color: #925eaf;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+/* Текст подтверждения */
+.logout-message {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+/* Кнопки */
+.logout-form {
+    margin-bottom: 10px;
+}
+
+.logout-btn {
+    background-color: #c86aa0;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background-color: #925eaf;
+}
+
+.back-btn {
+    display: inline-block;
+    background-color: #925eaf;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background-color: #7b4691;
+}
+

@@ -1,33 +1,41 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ flower.name }}</title>
-</head>
-<body>
-    <h1>{{ flower.name }}</h1>
-    <p>{{ flower.description }}</p>
-    <p>Цена: {{ flower.price }} ₽</p>
+{% extends 'base.html' %}
+{% load static %}
 
-    {% if flower.image %}
-        <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 200px; height: auto;">
-    {% else %}
-        <img src="/static/default_image.jpg" alt="No Image Available" style="width: 200px; height: auto;">
-    {% endif %}
+{% block content %}
+<div class="flower-detail-container">
+    <h1 class="flower-title">{{ flower.name }}</h1>
 
-    <!-- Отображение категорий, к которым относится цветок -->
-    <h2>Категории</h2>
-    <ul>
-        {% for category in flower.category.all %}
-            <li><a href="{% url 'category_detail' category.slug %}">{{ category.name }}</a></li>
-        {% endfor %}
-    </ul>
+    <div class="flower-detail-content">
+        <div class="flower-image-container">
+            {% if flower.image %}
+                <img src="{{ flower.image.url }}" alt="{{ flower.name }}" class="flower-detail-image">
+            {% else %}
+                <img src="{% static 'default_image.jpg' %}" alt="No Image Available" class="flower-detail-image">
+            {% endif %}
+        </div>
 
-    <form method="POST" action="{% url 'add_to_cart' flower.id %}">
-        {% csrf_token %}
-        <input type="number" name="quantity" min="1" value="1" required>
-        <button type="submit">Добавить в корзину</button>
-    </form>
+        <div class="flower-info">
+            <p class="flower-description">{{ flower.description }}</p>
+            <p class="flower-price">Цена: <strong>{{ flower.price }} ₽</strong></p>
 
-    <a href="{% url 'flower_list' %}">Назад к каталогу</a>
-</body>
-</html>
+
+
+            <!-- Форма добавления в корзину -->
+            <form method="POST" action="{% url 'add_to_cart' flower.id %}" class="add-to-cart-form">
+                {% csrf_token %}
+                <input type="number" name="quantity" min="1" value="1" class="quantity-input" required>
+                <button type="submit" class="btn add-to-cart-btn">Добавить</button>
+            </form>
+
+            <!-- Блок кнопок навигации -->
+            <div class="button-group">
+                <a href="{% url 'flower_list' %}" class="btn btn-nav">Назад в каталог</a>
+                {% if flower.category.all %}
+                    <a href="{% url 'category_detail' flower.category.first.slug %}" class="btn btn-nav">В раздел {{ flower.category.first.name }}</a>
+                {% endif %}
+                <button type="submit" class="btn add-to-cart-btn">В корзину</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

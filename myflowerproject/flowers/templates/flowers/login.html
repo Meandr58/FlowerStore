@@ -1,7 +1,16 @@
-<h2>Вход</h2>
-<form method="post" action="{% url 'login' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Войти</button>
-</form>
-<p>Ещё не зарегистрированы? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="login-container">
+    <h2 class="login-title">Вход</h2>
+
+    <form method="post" action="{% url 'login' %}" class="login-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn login-btn">Войти</button>
+    </form>
+
+    <p class="register-link">Ещё не зарегистрированы? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+</div>
+{% endblock %}
